@@ -81,17 +81,45 @@ If you set `ANTHROPIC_API_KEY`, user prompts are enriched by Claude before being
 
 ## Example outputs
 
-**Poe 60% + Lovecraft 40%** -- *a man descends into the cellar of his ancestral home*
+**Poe 60% + Lovecraft 40%** -- *a scholar descends into the cellar of his ancestral home and discovers a passage into darkness*
 
-> The stone steps of the cellar descended steeply, and at its bottom there yawned only blackness. Then, turning my attention to the cellar walls, I noticed for the first time a low door of heavy planks which lay hid behind a great heap of casks. The sight of the crudely fashioned planks and rusty bolt filled me with a strange excitement which was not all of terror; for I seemed to sense in it something of that subtle, hidden quality which haunts the oldest parts of our most familiar abodes.
+> I have said that I found the passage clear of obstructions. This was not entirely true, for as I advanced I encountered several low-swinging beams, which I was compelled to feel my way around. About me the darkness thickened; then, after a long descent, I began to notice a queer change in the atmosphere -- a stifling, sickish quality which my brain told me could not be altogether due to the natural mustiness of an uninhabited place.
+>
+> Suddenly my foot slipped on something wet, and I started back despite the fact that I could see nothing. A cold shiver ran through me; and then, as I recovered my composure, I realized that what my feet had slipped on must have been some mere trick of the mold and fungus. Yet a moment later I felt less sure; for my hand fell upon what seemed to be a great slab of stone, wet and clammy and giving off an evil odor.
+>
+> Scarcely had I gone a few paces when a foul gust from out the darkness seemed to strike me in the face like the puff from some opening grave. And then I knew, even before I heard the sound, that behind me had come a sudden rush of air through some door or passage which I must have left open. In another second I was enveloped in total darkness -- a gloom so utter that it seemed to stifle my very breath.
 
-**Wilde 50% + Conan Doyle 50%** -- *a dinner party revelation delivered with devastating wit*
+**Wilde 50% + Conan Doyle 50%** -- *Lord Henry observes a fellow dinner guest and delivers a devastating character study*
 
-> "Come, come, my dear young lady," said Lord Henry, buttoning his evening gloves. "We all do our little mischief here and there." ... "I am not so sure of that. True, we have only just been introduced; but I _have_ had the pleasure of listening to you for over a quarter of an hour, without your knowing me. That generally gives us a certain right to be impertinent."
+> "I adore her. I love people who are very, very stupid. There is a certain charm in every one of them. They never try to be more than what they are. Their ignorance is so considerable that I really respect it. And they always like you. They are such excellent listeners."
+>
+> "Give me one example," she cried.
+>
+> "Very well!" said Lord Henry, and, looking across the room, met Mrs. Cheveley's eye. "Do you see that lady in the corner? She has never read a book in her life. No literature whatever has ever stirred those uninteresting volumes of which Hayman is so unjustly proud. And a few weeks ago one of the most celebrated novelists of our day had to present her with an autographed copy of his latest work."
+>
+> "She was very flattered, I suppose?"
+>
+> "Flattered! She was deeply moved. Poor dear Lady Agnes! You know, Duchess, she is sweetly, wonderfully silly."
 
-**Jack London 70% + Poe 30%** -- *trappers in the Yukon sensing something wrong*
+**Jack London 70% + Poe 30%** -- *two trappers in the Yukon discuss the wolves that have been following them -- wolves that don't behave like any natural wolf*
 
-> "There ain't nothin' to do but go on," said Bill. "It's sure death for you to go on," Bill urged. "I'll go alone, an' I'll see that your share of the skins comes to you right enough." Again the other man indicated his dissent by a negative movement of the head and a grunt.
+> "They ain't no common timber wolves," Joe said after a while. "I never seen their like before."
+>
+> "They travel too much in packs," Bill said. "I never seen so many together before."
+>
+> "And did you notice how they moved?" Joe asked.
+>
+> Bill nodded. "Like a lot of dogs or cattle, all alike at the same time. They're not natural, that's what."
+>
+> "I've got an idea," Bill said suddenly. "They ain't no common wolves and they don't act like any wolves I ever saw. But if we was to take a look at them, we'd find they've got the faces of wolves --"
+>
+> "I know," Joe interrupted.
+>
+> "And their feet would be like the feet of wolves?" Bill went on.
+>
+> "But if it was all wolves except that, what do you think?"
+>
+> "I don't know. I ain't never heard of anything like it before."
 
 ## Training your own adapter
 
