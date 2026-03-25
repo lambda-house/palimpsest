@@ -27,20 +27,43 @@ export async function enhance({ userPrompt, adapterWeights, adapterList, systemP
     .filter(([, v]) => v > 0)
     .map(([id, v]) => {
       const adapter = adapterList.find((a) => a.id === id);
-      return { id, label: adapter?.label || id, weight: v };
+      return { id, label: adapter?.label || id, weight: v, lang: adapter?.lang };
     });
 
   if (active.length === 0) return userPrompt;
+
+  // Determine language from active adapters (highest total weight wins)
+  let ruWeight = 0, enWeight = 0;
+  for (const a of active) {
+    if (a.lang === "en") enWeight += a.weight;
+    else ruWeight += a.weight;
+  }
+  const lang = enWeight > ruWeight ? "en" : "ru";
 
   const total = active.reduce((s, a) => s + a.weight, 0);
   const mix = active
     .map((a) => `${a.label} (${a.id}) — ${Math.round((a.weight / total) * 100)}%`)
     .join(", ");
 
-  const response = await client.messages.create({
-    model: ENHANCE_MODEL,
-    max_tokens: 1024,
-    system: `You are a literary prompt engineer. Your job is to take a user's creative writing request and rewrite it into an optimal prompt for a small (12B parameter) Russian-language literary model that has LoRA adapters fine-tuned on specific authors.
+  const defaultSystemPrompt = lang === "en"
+    ? "You are a fiction writer."
+    : "Ты — писатель художественной прозы.";
+
+  const systemInstructions = lang === "en"
+    ? `You are a literary prompt engineer. Your job is to take a user's creative writing request and rewrite it into an optimal prompt for a small (12B parameter) English-language literary model that has LoRA adapters fine-tuned on specific authors.
+
+The model will receive your rewritten prompt as the user message. The LoRA adapter mix is applied at inference time — you do NOT need to instruct the model to "write like author X". Instead, focus on:
+
+1. Enriching the creative brief with vivid specifics: setting details, mood, sensory anchors, narrative tension
+2. Priming the themes, motifs, and narrative devices characteristic of the authors in the mix — without naming them
+3. Suggesting a narrative structure or opening direction that plays to the strengths of the style blend
+4. Keeping instructions in English, matching the language of the literary model
+5. Being concise — the model has a 4096 token context, so the prompt should leave room for generation
+
+The current system prompt is: "${systemPrompt || defaultSystemPrompt}"
+
+Output ONLY the rewritten prompt in English. No explanations, no meta-commentary.`
+    : `You are a literary prompt engineer. Your job is to take a user's creative writing request and rewrite it into an optimal prompt for a small (12B parameter) Russian-language literary model that has LoRA adapters fine-tuned on specific authors.
 
 The model will receive your rewritten prompt as the user message. The LoRA adapter mix is applied at inference time — you do NOT need to instruct the model to "write like author X". Instead, focus on:
 
@@ -50,9 +73,14 @@ The model will receive your rewritten prompt as the user message. The LoRA adapt
 4. Keeping instructions in Russian, matching the language of the literary model
 5. Being concise — the model has a 4096 token context, so the prompt should leave room for generation
 
-The current system prompt is: "${systemPrompt || "Ты — писатель художественной прозы."}"
+The current system prompt is: "${systemPrompt || defaultSystemPrompt}"
 
-Output ONLY the rewritten prompt in Russian. No explanations, no meta-commentary.`,
+Output ONLY the rewritten prompt in Russian. No explanations, no meta-commentary.`;
+
+  const response = await client.messages.create({
+    model: ENHANCE_MODEL,
+    max_tokens: 1024,
+    system: systemInstructions,
     messages: [
       {
         role: "user",
