@@ -1,0 +1,53 @@
+replicaCount: 1
+
+image:
+  repository: harbor.prod.lh.jacum.com/library/palimpsest
+  tag: latest
+  pullPolicy: Always
+
+app:
+  port: 3000
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 100m
+    limits:
+      memory: 128Mi
+
+llama:
+  image: ghcr.io/ggml-org/llama.cpp:server
+  pullPolicy: IfNotPresent
+  port: 8080
+  ctxSize: 8192
+  parallel: 2
+  resources:
+    requests:
+      memory: 24Gi
+      cpu: "4"
+    limits:
+      memory: 28Gi
+
+baseModel:
+  file: saiga-nemo12b-base-q6k.gguf
+
+adapters:
+  - id: pelevin
+    file: pelevin.lora.gguf
+    label: "Пелевин"
+  - id: lovecraft
+    file: lovecraft.lora.gguf
+    label: "Лавкрафт"
+  - id: marquez
+    file: marquez.lora.gguf
+    label: "Маркес"
+  - id: sorokin
+    file: sorokin.lora.gguf
+    label: "Сорокин"
+
+modelsHostPath: /data/models
+
+ingress:
+  enabled: true
+  host: palimpsest.prod.lh.jacum.com
+  tls: true
+  clusterIssuer: letsencrypt-prod

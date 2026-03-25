@@ -1,0 +1,21 @@
+node_modules/
+.idea/
+.DS_Store
+
+# Model files (large, stored separately)
+*.gguf
+models/
+adapters/
+
+# Corpus and training data (derived, reproducible)
+corpus/
+data/
+
+# DPO evaluation outputs
+dpo/*.html
+dpo/*.jsonl
+!dpo/prompts.jsonl
+
+# Python
+__pycache__/
+*.pyc

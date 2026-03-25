@@ -1,0 +1,204 @@
+{{- $llamaImage := .Values.llama.image | default "ghcr.io/ggml-org/llama.cpp:server" }}
+{{- $llamaPullPolicy := .Values.llama.pullPolicy | default "IfNotPresent" }}
+{{- $modelsPath := .Values.modelsHostPath | default "/data/models" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount | default 1 }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+        {{- /* Russian llama-server */}}
+        {{- if .Values.llamaRu }}
+        - name: llama-ru
+          image: {{ $llamaImage }}
+          imagePullPolicy: {{ $llamaPullPolicy }}
+          args:
+            - "--model"
+            - "/models/{{ .Values.llamaRu.baseModel }}"
+            {{- range .Values.llamaRu.adapters }}
+            - "--lora"
+            - "/models/{{ .file }}"
+            {{- end }}
+            - "--lora-init-without-apply"
+            - "--no-jinja"
+            - "--port"
+            - "{{ .Values.llamaRu.port | default 8080 }}"
+            - "--ctx-size"
+            - "{{ .Values.llamaRu.ctxSize | default 4096 }}"
+            - "--parallel"
+            - "{{ .Values.llamaRu.parallel | default 1 }}"
+            - "--host"
+            - "0.0.0.0"
+          ports:
+            - containerPort: {{ .Values.llamaRu.port | default 8080 }}
+          volumeMounts:
+            - name: model-volume
+              mountPath: /models
+              readOnly: true
+          resources:
+            {{- toYaml .Values.llamaRu.resources | nindent 12 }}
+          startupProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.llamaRu.port | default 8080 }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 120
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.llamaRu.port | default 8080 }}
+            periodSeconds: 10
+        {{- end }}
+        {{- /* English llama-server */}}
+        {{- if .Values.llamaEn }}
+        - name: llama-en
+          image: {{ $llamaImage }}
+          imagePullPolicy: {{ $llamaPullPolicy }}
+          args:
+            - "--model"
+            - "/models/{{ .Values.llamaEn.baseModel }}"
+            {{- range .Values.llamaEn.adapters }}
+            - "--lora"
+            - "/models/{{ .file }}"
+            {{- end }}
+            - "--lora-init-without-apply"
+            - "--no-jinja"
+            - "--port"
+            - "{{ .Values.llamaEn.port | default 8081 }}"
+            - "--ctx-size"
+            - "{{ .Values.llamaEn.ctxSize | default 4096 }}"
+            - "--parallel"
+            - "{{ .Values.llamaEn.parallel | default 1 }}"
+            - "--host"
+            - "0.0.0.0"
+          ports:
+            - containerPort: {{ .Values.llamaEn.port | default 8081 }}
+          volumeMounts:
+            - name: model-volume
+              mountPath: /models
+              readOnly: true
+          resources:
+            {{- toYaml .Values.llamaEn.resources | nindent 12 }}
+          startupProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.llamaEn.port | default 8081 }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 120
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.llamaEn.port | default 8081 }}
+            periodSeconds: 10
+        {{- end }}
+        {{- /* Backwards compat: single llama server */}}
+        {{- if and .Values.llama .Values.baseModel (not .Values.llamaRu) }}
+        - name: llama
+          image: {{ $llamaImage }}
+          imagePullPolicy: {{ $llamaPullPolicy }}
+          args:
+            - "--model"
+            - "/models/{{ .Values.baseModel.file }}"
+            {{- range .Values.adapters }}
+            - "--lora"
+            - "/models/{{ .file }}"
+            {{- end }}
+            - "--lora-init-without-apply"
+            - "--no-jinja"
+            - "--port"
+            - "{{ .Values.llama.port | default 8080 }}"
+            - "--ctx-size"
+            - "{{ .Values.llama.ctxSize | default 4096 }}"
+            - "--parallel"
+            - "{{ .Values.llama.parallel | default 1 }}"
+            - "--host"
+            - "0.0.0.0"
+          ports:
+            - containerPort: {{ .Values.llama.port | default 8080 }}
+          volumeMounts:
+            - name: model-volume
+              mountPath: /models
+              readOnly: true
+          resources:
+            {{- toYaml .Values.llama.resources | nindent 12 }}
+          startupProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.llama.port | default 8080 }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 120
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.llama.port | default 8080 }}
+            periodSeconds: 10
+        {{- end }}
+        - name: app
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "Always" }}
+          ports:
+            - containerPort: {{ .Values.app.port | default 3000 }}
+          env:
+            - name: PORT
+              value: "{{ .Values.app.port | default 3000 }}"
+            {{- if .Values.llamaRu }}
+            - name: LLAMA_URL_RU
+              value: "http://localhost:{{ .Values.llamaRu.port | default 8080 }}"
+            - name: ADAPTERS_RU
+              value: "{{ range $i, $a := .Values.llamaRu.adapters }}{{ if $i }},{{ end }}{{ $a.id }}:{{ $a.label }}{{ end }}"
+            {{- end }}
+            {{- if .Values.llamaEn }}
+            - name: LLAMA_URL_EN
+              value: "http://localhost:{{ .Values.llamaEn.port | default 8081 }}"
+            - name: ADAPTERS_EN
+              value: "{{ range $i, $a := .Values.llamaEn.adapters }}{{ if $i }},{{ end }}{{ $a.id }}:{{ $a.label }}{{ end }}"
+            {{- end }}
+            {{- /* Backwards compat */}}
+            {{- if and .Values.llama (not .Values.llamaRu) }}
+            - name: LLAMA_URL
+              value: "http://localhost:{{ .Values.llama.port | default 8080 }}"
+            - name: ADAPTERS
+              value: "{{ range $i, $a := .Values.adapters }}{{ if $i }},{{ end }}{{ $a.id }}:{{ $a.label }}{{ end }}"
+            {{- end }}
+            - name: MODELS_DIR
+              value: "/models"
+            {{- if .Values.anthropicApiKeySecret }}
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.anthropicApiKeySecret.name }}
+                  key: {{ .Values.anthropicApiKeySecret.key }}
+            {{- end }}
+          volumeMounts:
+            - name: model-volume
+              mountPath: /models
+              readOnly: true
+          resources:
+            {{- toYaml (.Values.app.resources | default dict) | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.app.port | default 3000 }}
+            initialDelaySeconds: 3
+            periodSeconds: 10
+      volumes:
+        - name: model-volume
+          hostPath:
+            path: {{ $modelsPath }}
+            type: Directory

@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Palimpsest</title>
+<style>
+  :root {
+    --bg: #1a1a1a;
+    --surface: #242424;
+    --border: #333;
+    --text: #e0e0e0;
+    --text-dim: #888;
+    --accent: #c49b5c;
+    --user-bg: #2a2a2a;
+    --assist-bg: #1e1e1e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  header h1 {
+    font-size: 1.3rem;
+    font-weight: normal;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+  header .subtitle {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+  nav {
+    margin-left: auto;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    font-size: 0.85rem;
+  }
+  nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+  nav a:hover { color: var(--accent); }
+  nav a.active { color: var(--accent); }
+  #status {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+  #status.connected { color: #6a6; }
+  #status.error { color: #a66; }
+
+  /* Adapter mixing panel */
+  #mixer {
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    max-width: 768px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  #mixer-toggle {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-align: left;
+    padding: 4px 0;
+  }
+  #mixer-toggle:hover { opacity: 0.8; }
+  #mixer-panel {
+    display: none;
+    padding-top: 12px;
+  }
+  #mixer-panel.open { display: block; }
+  #lang-tabs {
+    display: flex;
+    gap: 0;
+    max-width: 768px;
+    width: 100%;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+  .lang-tab {
+    flex: 1;
+    padding: 10px 0;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-align: center;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .lang-tab:hover { color: var(--text); }
+  .lang-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .lang-panel { display: none; }
+  .lang-panel.active { display: block; }
+  .adapter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 6px 0;
+  }
+  .adapter-row label {
+    width: 120px;
+    font-size: 0.85rem;
+    color: var(--text);
+    text-align: right;
+  }
+  .adapter-row input[type="range"] {
+    flex: 1;
+    accent-color: var(--accent);
+    max-width: 200px;
+  }
+  .adapter-row .val {
+    width: 32px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-align: right;
+  }
+  .adapter-row .pct {
+    width: 36px;
+    font-size: 0.75rem;
+    color: var(--accent);
+    text-align: right;
+  }
+  #recipe-display {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  #gen-controls {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+  .control-group input[type="range"] {
+    width: 80px;
+    accent-color: var(--accent);
+  }
+  .control-group .val {
+    min-width: 28px;
+    text-align: right;
+  }
+
+  /* System prompt */
+  #system-prompt-area {
+    border-bottom: 1px solid var(--border);
+    max-width: 768px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  #sp-toggle {
+    display: block;
+    width: 100%;
+    padding: 8px 0;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-align: left;
+  }
+  #sp-toggle:hover { color: var(--text); }
+  #sp-editor {
+    display: none;
+    padding-bottom: 12px;
+  }
+  #sp-editor.open { display: block; }
+  #sp-editor textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    resize: vertical;
+    line-height: 1.5;
+    min-height: 60px;
+    max-height: 200px;
+  }
+  #sp-editor textarea:focus { outline: none; border-color: var(--accent); }
+  #sp-editor .hint {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Chat */
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .msg {
+    max-width: 720px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 16px 20px;
+    border-radius: 4px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    font-size: 0.95rem;
+  }
+  .msg.user {
+    background: var(--user-bg);
+    border-left: 3px solid var(--accent);
+  }
+  .msg.assistant {
+    background: var(--assist-bg);
+    border-left: 3px solid #555;
+  }
+  .msg .recipe-tag {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .msg .meta-tag {
+    font-size: 0.7rem;
+    color: var(--accent);
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    opacity: 0.7;
+  }
+  .msg .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: var(--accent);
+    animation: blink 0.8s infinite;
+    vertical-align: text-bottom;
+    margin-left: 2px;
+  }
+  .msg .queue-info {
+    color: var(--text-dim);
+    font-style: italic;
+  }
+  .enhanced-prompt {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+  .enhanced-prompt summary {
+    cursor: pointer;
+    color: var(--accent);
+    opacity: 0.7;
+  }
+  .enhanced-prompt summary:hover { opacity: 1; }
+  .enhanced-text {
+    margin-top: 6px;
+    padding: 8px 12px;
+    background: var(--surface);
+    border-radius: 3px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* Input */
+  #input-area {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    max-width: 768px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  #input-area textarea {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 16px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    border-radius: 4px;
+    resize: none;
+    line-height: 1.5;
+    min-height: 48px;
+    max-height: 200px;
+  }
+  #input-area textarea:focus { outline: none; border-color: var(--accent); }
+  #input-area textarea::placeholder { color: var(--text-dim); }
+  #input-area button {
+    background: var(--accent);
+    color: #111;
+    border: none;
+    padding: 0 20px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #input-area button:hover { opacity: 0.9; }
+  #input-area button:disabled { opacity: 0.4; cursor: not-allowed; }
+  #clear-btn {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 0 12px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  #clear-btn:hover { border-color: var(--text-dim); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Palimpsest</h1>
+  <span class="subtitle">literary style mixing</span>
+  <nav>
+    <a href="/" class="active">Chat</a>
+    <a href="/sources">Sources</a>
+    <div id="status">connecting...</div>
+  </nav>
+</header>
+
+<div id="lang-tabs"></div>
+
+<div id="mixer">
+  <button id="mixer-toggle">Mixer &#9660;</button>
+  <div id="mixer-panel" class="open">
+    <div id="adapter-sliders"></div>
+    <div id="recipe-display"></div>
+    <div id="gen-controls">
+      <div class="control-group">
+        <label for="length-slider">Length</label>
+        <input type="range" id="length-slider" min="64" max="2048" step="64" value="512">
+        <span class="val" id="length-val">512</span>
+      </div>
+      <div class="control-group">
+        <label for="temp-slider">Temp</label>
+        <input type="range" id="temp-slider" min="0.1" max="1.5" step="0.1" value="0.8">
+        <span class="val" id="temp-val">0.8</span>
+      </div>
+      <div class="control-group">
+        <label for="rep-slider">Repeat</label>
+        <input type="range" id="rep-slider" min="1.0" max="1.5" step="0.05" value="1.1">
+        <span class="val" id="rep-val">1.1</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="system-prompt-area">
+  <button id="sp-toggle">System prompt &#9654;</button>
+  <div id="sp-editor">
+    <textarea id="sp-text" rows="3"></textarea>
+    <div class="hint">Changes apply on "New chat".</div>
+  </div>
+</div>
+
+<div id="chat"></div>
+
+<div id="input-area">
+  <textarea id="prompt" rows="1" placeholder="Напишите задание..."></textarea>
+  <button id="send">Отправить</button>
+  <button id="clear-btn">Новый чат</button>
+</div>
+
+<script>
+const DEFAULT_SYSTEM_PROMPT = (localStorage.getItem('palimpsest-lang') || 'ru') === 'en'
+  ? 'You are a fiction writer.'
+  : 'Ты — писатель художественной прозы.';
+
+const chat = document.getElementById('chat');
+const promptEl = document.getElementById('prompt');
+const sendBtn = document.getElementById('send');
+const clearBtn = document.getElementById('clear-btn');
+const statusEl = document.getElementById('status');
+const mixerToggle = document.getElementById('mixer-toggle');
+const mixerPanel = document.getElementById('mixer-panel');
+const adapterSlidersEl = document.getElementById('adapter-sliders');
+const recipeDisplay = document.getElementById('recipe-display');
+const spToggle = document.getElementById('sp-toggle');
+const spEditor = document.getElementById('sp-editor');
+const spText = document.getElementById('sp-text');
+const lengthSlider = document.getElementById('length-slider');
+const lengthVal = document.getElementById('length-val');
+const tempSlider = document.getElementById('temp-slider');
+const tempVal = document.getElementById('temp-val');
+const repSlider = document.getElementById('rep-slider');
+const repVal = document.getElementById('rep-val');
+
+let ws;
+let userId = localStorage.getItem('palimpsest-userId');
+let systemPrompt = localStorage.getItem('palimpsest-system-prompt') || DEFAULT_SYSTEM_PROMPT;
+let maxTokens = parseInt(localStorage.getItem('palimpsest-max-tokens') || '512', 10);
+let temperature = parseFloat(localStorage.getItem('palimpsest-temperature') || '0.8');
+let repeatPenalty = parseFloat(localStorage.getItem('palimpsest-repeat-penalty') || '1.1');
+let generating = false;
+let currentEl = null;
+let currentText = '';
+let adapterList = [];
+let adapterWeights = JSON.parse(localStorage.getItem('palimpsest-weights') || '{}');
+
+spText.value = systemPrompt;
+lengthSlider.value = maxTokens;
+lengthVal.textContent = maxTokens;
+tempSlider.value = temperature;
+tempVal.textContent = temperature;
+repSlider.value = repeatPenalty;
+repVal.textContent = repeatPenalty;
+
+lengthSlider.addEventListener('input', () => {
+  maxTokens = parseInt(lengthSlider.value, 10);
+  lengthVal.textContent = maxTokens;
+  localStorage.setItem('palimpsest-max-tokens', maxTokens);
+});
+
+tempSlider.addEventListener('input', () => {
+  temperature = parseFloat(tempSlider.value);
+  tempVal.textContent = temperature;
+  localStorage.setItem('palimpsest-temperature', temperature);
+});
+
+repSlider.addEventListener('input', () => {
+  repeatPenalty = parseFloat(repSlider.value);
+  repVal.textContent = repeatPenalty;
+  localStorage.setItem('palimpsest-repeat-penalty', repeatPenalty);
+});
+
+mixerToggle.addEventListener('click', () => {
+  const open = mixerPanel.classList.toggle('open');
+  mixerToggle.innerHTML = 'Mixer ' + (open ? '&#9660;' : '&#9654;');
+});
+
+spToggle.addEventListener('click', () => {
+  const open = spEditor.classList.toggle('open');
+  spToggle.innerHTML = 'System prompt ' + (open ? '&#9660;' : '&#9654;');
+});
+
+spText.addEventListener('input', () => {
+  systemPrompt = spText.value;
+  localStorage.setItem('palimpsest-system-prompt', systemPrompt);
+});
+
+const LANG_LABELS = { ru: 'Russian', en: 'English' };
+const LANG_DEFAULTS = {
+  ru: { systemPrompt: 'Ты — писатель художественной прозы.', placeholder: 'Напишите задание...' },
+  en: { systemPrompt: 'You are a fiction writer.', placeholder: 'Write your prompt...' },
+};
+let activeLang = localStorage.getItem('palimpsest-lang') || 'ru';
+
+function buildLangTabs(adapters) {
+  const tabBar = document.getElementById('lang-tabs');
+  tabBar.innerHTML = '';
+
+  const langs = [...new Set(adapters.map(a => a.lang || 'ru'))];
+  if (langs.length <= 1) {
+    tabBar.style.display = 'none';
+    return;
+  }
+
+  if (!langs.includes(activeLang)) activeLang = langs[0];
+
+  langs.forEach(lang => {
+    const tab = document.createElement('button');
+    tab.className = 'lang-tab' + (lang === activeLang ? ' active' : '');
+    tab.textContent = LANG_LABELS[lang] || lang;
+    tab.dataset.lang = lang;
+    tab.addEventListener('click', () => {
+      if (lang === activeLang) return;
+      switchLang(lang);
+    });
+    tabBar.appendChild(tab);
+  });
+}
+
+function buildAdapterSliders(adapters) {
+  adapterList = adapters;
+  buildLangTabs(adapters);
+  renderCurrentLangSliders();
+  applyLangDefaults();
+  updateRecipe();
+}
+
+function renderCurrentLangSliders() {
+  adapterSlidersEl.innerHTML = '';
+  const langAdapters = adapterList.filter(a => (a.lang || 'ru') === activeLang);
+
+  langAdapters.forEach(adapter => {
+    const saved = adapterWeights[adapter.id] ?? 0;
+    const row = document.createElement('div');
+    row.className = 'adapter-row';
+    row.innerHTML = `
+      <label>${adapter.label}</label>
+      <input type="range" min="0" max="1" step="0.1" value="${saved}" data-id="${adapter.id}">
+      <span class="val" data-val="${adapter.id}">${saved.toFixed(1)}</span>
+      <span class="pct" data-pct="${adapter.id}"></span>
+    `;
+    adapterSlidersEl.appendChild(row);
+
+    const slider = row.querySelector('input');
+    slider.addEventListener('input', () => {
+      const v = parseFloat(slider.value);
+      adapterWeights[adapter.id] = v;
+      row.querySelector(`[data-val="${adapter.id}"]`).textContent = v.toFixed(1);
+      updateRecipe();
+      localStorage.setItem('palimpsest-weights', JSON.stringify(adapterWeights));
+    });
+  });
+}
+
+function applyLangDefaults() {
+  const defaults = LANG_DEFAULTS[activeLang] || LANG_DEFAULTS.ru;
+  promptEl.placeholder = defaults.placeholder;
+  // Update system prompt if user hasn't customized it
+  const isDefault = Object.values(LANG_DEFAULTS).some(d => d.systemPrompt === systemPrompt);
+  if (isDefault || !systemPrompt) {
+    systemPrompt = defaults.systemPrompt;
+    spText.value = systemPrompt;
+    localStorage.setItem('palimpsest-system-prompt', systemPrompt);
+  }
+}
+
+function switchLang(lang) {
+  // Zero out all adapter weights
+  adapterList.forEach(a => { adapterWeights[a.id] = 0; });
+
+  activeLang = lang;
+  localStorage.setItem('palimpsest-lang', lang);
+  localStorage.setItem('palimpsest-weights', JSON.stringify(adapterWeights));
+
+  // Update tabs
+  document.querySelectorAll('.lang-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.lang === lang));
+
+  // Rebuild sliders for new language
+  renderCurrentLangSliders();
+  applyLangDefaults();
+  updateRecipe();
+
+  // Clear conversation — can't mix languages in one session
+  ws.send(JSON.stringify({ type: 'clear', systemPrompt }));
+}
+
+function updateRecipe() {
+  const active = Object.entries(adapterWeights).filter(([, v]) => v > 0);
+  if (active.length === 0) {
+    recipeDisplay.textContent = 'Base model (no adapters)';
+    return;
+  }
+  const total = active.reduce((s, [, v]) => s + v, 0);
+  const parts = active.map(([id, v]) => {
+    const adapter = adapterList.find(a => a.id === id);
+    const pct = Math.round(v / total * 100);
+    const pctEl = document.querySelector(`[data-pct="${id}"]`);
+    if (pctEl) pctEl.textContent = `${pct}%`;
+    return `${adapter?.label || id} ${pct}%`;
+  });
+  recipeDisplay.textContent = parts.join(' + ');
+
+  // Clear pct for inactive
+  adapterList.forEach(a => {
+    if (!adapterWeights[a.id] || adapterWeights[a.id] === 0) {
+      const pctEl = document.querySelector(`[data-pct="${a.id}"]`);
+      if (pctEl) pctEl.textContent = '';
+    }
+  });
+}
+
+function getRecipeTag() {
+  const active = Object.entries(adapterWeights).filter(([, v]) => v > 0);
+  if (active.length === 0) return 'base model';
+  const total = active.reduce((s, [, v]) => s + v, 0);
+  return active.map(([id, v]) => {
+    const adapter = adapterList.find(a => a.id === id);
+    return `${adapter?.label || id} ${Math.round(v / total * 100)}%`;
+  }).join(' + ');
+}
+
+function connect() {
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${proto}//${location.host}`);
+
+  ws.onopen = () => {
+    statusEl.textContent = 'connected';
+    statusEl.className = 'connected';
+    ws.send(JSON.stringify({ type: 'hello', userId, systemPrompt }));
+  };
+
+  ws.onclose = () => {
+    statusEl.textContent = 'disconnected';
+    statusEl.className = 'error';
+    setTimeout(connect, 2000);
+  };
+
+  ws.onerror = () => {
+    statusEl.textContent = 'error';
+    statusEl.className = 'error';
+  };
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+
+    if (msg.type === 'session') {
+      userId = msg.userId;
+      localStorage.setItem('palimpsest-userId', userId);
+      if (msg.adapters) {
+        buildAdapterSliders(msg.adapters);
+      }
+      if (msg.systemPrompt && !localStorage.getItem('palimpsest-system-prompt')) {
+        systemPrompt = msg.systemPrompt;
+        spText.value = systemPrompt;
+      }
+      if (msg.history && msg.history.length > 0) {
+        chat.innerHTML = '';
+        msg.history.forEach((m) => addMessage(m.role, m.content));
+      }
+    }
+
+    if (msg.type === 'queue') {
+      if (currentEl) {
+        currentEl.innerHTML = '<span class="queue-info">В очереди: ' + msg.position + '</span>';
+      }
+    }
+
+    if (msg.type === 'status') {
+      if (currentEl && msg.status === 'enhancing') {
+        const tag = currentEl.querySelector('.recipe-tag');
+        const tagHtml = tag ? tag.outerHTML : '';
+        currentEl.innerHTML = tagHtml + '<span class="queue-info">Обогащение промпта...</span>';
+      } else if (currentEl && msg.status === 'loading') {
+        const tag = currentEl.querySelector('.recipe-tag');
+        const tagHtml = tag ? tag.outerHTML : '';
+        currentEl.innerHTML = tagHtml + '<span class="queue-info">Загрузка...</span>';
+      }
+    }
+
+    if (msg.type === 'token') {
+      currentText += msg.text;
+      if (currentEl) {
+        const tag = currentEl.querySelector('.recipe-tag');
+        const tagHtml = tag ? tag.outerHTML : '';
+        currentEl.innerHTML = tagHtml + escapeHtml(currentText) + '<span class="cursor"></span>';
+      }
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    if (msg.type === 'done') {
+      if (currentEl) {
+        const tag = currentEl.querySelector('.recipe-tag');
+        let tagHtml = tag ? tag.outerHTML : '';
+        // Add metadata footer if present
+        let metaHtml = '';
+        if (msg.meta) {
+          const parts = [];
+          if (msg.meta.adapters) {
+            const active = Object.entries(msg.meta.adapters).filter(([,v]) => v > 0);
+            if (active.length > 0) {
+              const total = active.reduce((s,[,v]) => s+v, 0);
+              parts.push(active.map(([id,v]) => {
+                const a = adapterList.find(a => a.id === id);
+                return `${a?.label||id} ${Math.round(v/total*100)}%`;
+              }).join(' + '));
+            }
+          }
+          if (msg.meta.options?.temperature) parts.push(`t=${msg.meta.options.temperature}`);
+          if (msg.meta.options?.max_tokens) parts.push(`len=${msg.meta.options.max_tokens}`);
+          if (msg.meta.enhanced) {
+            parts.push('enhanced');
+          }
+          if (parts.length > 0) {
+            metaHtml = `<div class="meta-tag">${escapeHtml(parts.join(' · '))}</div>`;
+          }
+          if (msg.meta.enhanced) {
+            metaHtml += `<details class="enhanced-prompt"><summary>Enhanced prompt</summary><div class="enhanced-text">${escapeHtml(msg.meta.enhanced)}</div></details>`
+          }
+        }
+        currentEl.innerHTML = tagHtml + escapeHtml(currentText) + metaHtml;
+      }
+      generating = false;
+      currentEl = null;
+      currentText = '';
+      sendBtn.textContent = 'Отправить';
+      sendBtn.disabled = false;
+      promptEl.focus();
+    }
+
+    if (msg.type === 'error') {
+      addMessage('system', 'Ошибка: ' + msg.text);
+      generating = false;
+      currentEl = null;
+      currentText = '';
+      sendBtn.textContent = 'Отправить';
+      sendBtn.disabled = false;
+    }
+
+    if (msg.type === 'cleared') {
+      chat.innerHTML = '';
+    }
+  };
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function addMessage(role, text, recipe) {
+  const el = document.createElement('div');
+  el.className = 'msg ' + role;
+  if (recipe && role === 'assistant') {
+    el.innerHTML = `<div class="recipe-tag">${escapeHtml(recipe)}</div>${escapeHtml(text)}`;
+  } else {
+    el.textContent = text;
+  }
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
+  return el;
+}
+
+function send() {
+  if (generating) {
+    ws.send(JSON.stringify({ type: 'abort' }));
+    generating = false;
+    sendBtn.textContent = 'Отправить';
+    return;
+  }
+
+  const text = promptEl.value.trim();
+  if (!text) return;
+
+  addMessage('user', text);
+
+  const recipe = getRecipeTag();
+  currentText = '';
+  currentEl = addMessage('assistant', '', recipe);
+  currentEl.innerHTML = `<div class="recipe-tag">${escapeHtml(recipe)}</div><span class="cursor"></span>`;
+
+  ws.send(JSON.stringify({
+    type: 'chat',
+    text,
+    adapterWeights,
+    options: { max_tokens: maxTokens, temperature, repeat_penalty: repeatPenalty }
+  }));
+
+  promptEl.value = '';
+  promptEl.style.height = 'auto';
+  generating = true;
+  sendBtn.textContent = 'Стоп';
+  sendBtn.disabled = false;
+}
+
+clearBtn.addEventListener('click', () => {
+  ws.send(JSON.stringify({ type: 'clear', systemPrompt }));
+});
+
+sendBtn.addEventListener('click', send);
+promptEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
+promptEl.addEventListener('input', () => {
+  promptEl.style.height = 'auto';
+  promptEl.style.height = Math.min(promptEl.scrollHeight, 200) + 'px';
+});
+
+connect();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: palimpsest
+version: 0.1.0
+description: Literary style mixing with LoRA adapters
+type: application

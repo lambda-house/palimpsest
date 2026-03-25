@@ -1,0 +1,13 @@
+{
+  "name": "palimpsest",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo 'no build step needed'"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "ws": "^8.17.0"
+  }
+}

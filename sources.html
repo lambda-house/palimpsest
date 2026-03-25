@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Palimpsest — Sources</title>
+<style>
+  :root {
+    --bg: #1a1a1a;
+    --surface: #242424;
+    --border: #333;
+    --text: #e0e0e0;
+    --text-dim: #888;
+    --accent: #c49b5c;
+    --user-bg: #2a2a2a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+  }
+  header {
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  header h1 {
+    font-size: 1.3rem;
+    font-weight: normal;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+  header .subtitle {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+  nav {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+    font-size: 0.85rem;
+  }
+  nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+  nav a:hover { color: var(--accent); }
+  nav a.active { color: var(--accent); }
+
+  .content {
+    max-width: 768px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  h2 {
+    font-size: 1.1rem;
+    font-weight: normal;
+    color: var(--accent);
+    margin: 32px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  h2:first-child { margin-top: 0; }
+
+  h3 {
+    font-size: 0.95rem;
+    font-weight: normal;
+    color: var(--text);
+    margin: 20px 0 10px;
+  }
+
+  p, li {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  p { margin: 8px 0; }
+  ul, ol { margin: 8px 0 8px 24px; }
+  li { margin: 4px 0; }
+
+  a { color: var(--accent); }
+  a:hover { opacity: 0.8; }
+
+  .download-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+  }
+  .download-table th {
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: normal;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .download-table td {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .download-table tr:last-child td { border-bottom: none; }
+  .download-table .file-name { font-family: monospace; font-size: 0.8rem; }
+  .download-table .dl-link {
+    text-decoration: none;
+    color: var(--accent);
+    font-size: 0.8rem;
+  }
+  .download-table .dl-link:hover { text-decoration: underline; }
+  .badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  code {
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.8rem;
+    background: var(--surface);
+    padding: 2px 5px;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin: 10px 0;
+    overflow-x: auto;
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    margin: 10px 0 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab-bar button {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  .tab-bar button:hover { color: var(--text); }
+  .tab-bar button.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .note {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-style: italic;
+    margin: 8px 0;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Palimpsest</h1>
+  <span class="subtitle">literary style mixing</span>
+  <nav>
+    <a href="/">Chat</a>
+    <a href="/sources" class="active">Sources</a>
+  </nav>
+</header>
+
+<div class="content">
+
+<h2>Downloads</h2>
+
+<p>To run Palimpsest locally you need the base model and at least one LoRA adapter.</p>
+
+<table class="download-table">
+  <thead>
+    <tr>
+      <th>File</th>
+      <th>Description</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="file-name">saiga-nemo12b-base-q6k.gguf <span class="badge">~9 GB</span></td>
+      <td>Base model — Saiga Nemo 12B (Q6_K quantization)</td>
+      <td><a class="dl-link" href="/download/saiga-nemo12b-base-q6k.gguf" download>Download</a></td>
+    </tr>
+    <tbody id="adapter-rows"></tbody>
+  </tbody>
+</table>
+
+<p class="note">
+  The base model is a GGUF quantization of
+  <a href="https://huggingface.co/IlyaGusev/saiga_nemo_12b" target="_blank">IlyaGusev/saiga_nemo_12b</a>.
+  LoRA adapters were fine-tuned with QLoRA on author-specific corpora and converted to GGUF-LoRA format.
+</p>
+
+<h2>Setup guide</h2>
+
+<p>Palimpsest requires two components: <strong>llama.cpp</strong> (the inference server) and the <strong>Node.js app</strong> (the web UI).</p>
+
+<h3>1. Install llama.cpp</h3>
+
+<div class="tab-bar" id="install-tabs">
+  <button class="active" data-tab="mac">macOS</button>
+  <button data-tab="linux">Linux</button>
+  <button data-tab="win">Windows</button>
+</div>
+
+<div id="tab-mac" class="tab-content active">
+<pre>brew install llama.cpp</pre>
+<p class="note">Requires Homebrew. Apple Silicon Macs get Metal GPU acceleration automatically.</p>
+</div>
+
+<div id="tab-linux" class="tab-content">
+<pre># Build from source with CUDA (NVIDIA GPU)
+git clone https://github.com/ggml-org/llama.cpp
+cd llama.cpp
+cmake -B build -DGGML_CUDA=ON
+cmake --build build --config Release -j
+
+# The server binary will be at:
+# build/bin/llama-server</pre>
+<p class="note">For CPU-only, omit <code>-DGGML_CUDA=ON</code>. For AMD GPUs, use <code>-DGGML_HIPBLAS=ON</code>.</p>
+</div>
+
+<div id="tab-win" class="tab-content">
+<pre># Option A: Pre-built binaries
+# Download the latest release from:
+# https://github.com/ggml-org/llama.cpp/releases
+# Get the llama-*-bin-win-cuda-*.zip for NVIDIA GPU
+# or llama-*-bin-win-avx2-*.zip for CPU-only
+
+# Option B: Build with CMake + Visual Studio
+git clone https://github.com/ggml-org/llama.cpp
+cd llama.cpp
+cmake -B build -DGGML_CUDA=ON
+cmake --build build --config Release</pre>
+<p class="note">NVIDIA GPU recommended. Requires CUDA Toolkit for GPU builds. CPU-only works but is slow for 12B models.</p>
+</div>
+
+<h3>2. Download model files</h3>
+
+<p>Create a directory for the models and download the base model and adapters:</p>
+
+<pre>mkdir -p models
+cd models
+
+# Download from this server (or copy the files manually)
+curl -O <span class="base-url"></span>/download/saiga-nemo12b-base-q6k.gguf
+curl -O <span class="base-url"></span>/download/pelevin.lora.gguf
+curl -O <span class="base-url"></span>/download/lovecraft.lora.gguf
+curl -O <span class="base-url"></span>/download/marquez.lora.gguf
+curl -O <span class="base-url"></span>/download/sorokin.lora.gguf</pre>
+
+<h3>3. Start llama-server</h3>
+
+<pre id="llama-cmd">llama-server \
+  -m models/saiga-nemo12b-base-q6k.gguf \
+  --lora models/pelevin.lora.gguf \
+  --lora models/lovecraft.lora.gguf \
+  --lora models/marquez.lora.gguf \
+  --lora models/sorokin.lora.gguf \
+  --lora-init-without-apply \
+  --port 8080 \
+  --ctx-size 4096</pre>
+
+<p class="note">
+  The <code>--lora-init-without-apply</code> flag loads all adapters but doesn't apply any by default —
+  adapter mixing is controlled per-request via the chat UI.
+  You need at least 16 GB of RAM (or VRAM) for the base model plus adapters.
+</p>
+
+<h3>4. Start the web app</h3>
+
+<pre>git clone https://github.com/lambda-house/palimpsest.git
+cd palimpsest
+npm install</pre>
+
+<div class="tab-bar" id="run-tabs">
+  <button class="active" data-tab="run-unix">macOS / Linux</button>
+  <button data-tab="run-win">Windows</button>
+</div>
+
+<div id="tab-run-unix" class="tab-content active">
+<pre>LLAMA_URL=http://localhost:8080 \
+ADAPTERS="pelevin:Пелевин,lovecraft:Лавкрафт,marquez:Маркес,sorokin:Сорокин" \
+node server.js</pre>
+</div>
+
+<div id="tab-run-win" class="tab-content">
+<pre>set LLAMA_URL=http://localhost:8080
+set ADAPTERS=pelevin:Пелевин,lovecraft:Лавкрафт,marquez:Маркес,sorokin:Сорокин
+node server.js</pre>
+<p class="note">In PowerShell, use <code>$env:LLAMA_URL = "http://localhost:8080"</code> syntax instead.</p>
+</div>
+
+<h3>5. Open the UI</h3>
+
+<p>Navigate to <a href="http://localhost:3000">http://localhost:3000</a> in your browser. Use the Mixer sliders to blend author styles.</p>
+
+<h2>Environment variables</h2>
+
+<table class="download-table">
+  <thead>
+    <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>PORT</code></td><td>3000</td><td>Web server port</td></tr>
+    <tr><td><code>LLAMA_URL</code></td><td>http://localhost:8080</td><td>llama.cpp server URL</td></tr>
+    <tr><td><code>ADAPTERS</code></td><td></td><td>Comma-separated <code>id:Label</code> list matching --lora order</td></tr>
+    <tr><td><code>MODELS_DIR</code></td><td></td><td>Path to models directory (enables file downloads)</td></tr>
+  </tbody>
+</table>
+
+</div>
+
+<script>
+// Populate adapter download rows from API
+fetch('/api/adapters')
+  .then(r => r.json())
+  .then(data => {
+    const tbody = document.getElementById('adapter-rows');
+    (data.adapters || []).forEach(a => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="file-name">${a.id}.lora.gguf <span class="badge">LoRA</span></td>
+        <td>${a.label} — style adapter</td>
+        <td><a class="dl-link" href="/download/${a.id}.lora.gguf" download>Download</a></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  })
+  .catch(() => {});
+
+// Fill in base URL for curl commands
+document.querySelectorAll('.base-url').forEach(el => {
+  el.textContent = location.origin;
+});
+
+// Tab switching
+document.querySelectorAll('.tab-bar').forEach(bar => {
+  bar.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      bar.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tabId = 'tab-' + btn.dataset.tab;
+      // Hide siblings, show target
+      let el = bar.nextElementSibling;
+      while (el && !el.classList.contains('tab-bar') && el.tagName !== 'H3' && el.tagName !== 'H2') {
+        if (el.classList.contains('tab-content')) {
+          el.classList.toggle('active', el.id === tabId);
+        }
+        el = el.nextElementSibling;
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
